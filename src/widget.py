@@ -5,7 +5,7 @@ from src.masks import get_mask_account, get_mask_card_number
 
 
 def mask_account_card(card_or_account_number: Union[str]) -> Union[str]:
-    """Функция маскирует номер карты или счёт"""
+    """Функция маскирует номер карты или счёт по функциям из masks.py"""
 
     if "Счет" in card_or_account_number:
         account_number_list = card_or_account_number.split()
