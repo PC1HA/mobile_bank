@@ -19,6 +19,7 @@ line_length = 119
 [tool.mypy]
 disallow_untyped_defs = true
 warn_return_any = true
+no_implicit_optional = true
 exclude = 'venv'
 
 [tool.poetry.dependencies]
