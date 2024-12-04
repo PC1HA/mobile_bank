@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Union
 
 from src.masks import get_mask_account, get_mask_card_number
@@ -25,5 +26,17 @@ def mask_account_card(card_or_account_number: Union[str]) -> Union[str]:
         return f"{card_name} {mask_card_number}"
 
 
+def git_date(date_and_time: Union[str]) -> Union[str]:
+    """
+    Преобразует строку с датой в формате "YYYY-MM-DDTHH:MM:SS.ssssss"
+    в строку с датой в формате "ДД.ММ.ГГГГ".
+    """
+    date_object = datetime.fromisoformat(date_and_time)
+    formatted_date = date_object.strftime("%d.%m.%Y")
+
+    return formatted_date
+
+
 if __name__ == "__main__":
     print(mask_account_card("Счет 64686473678894779589"))
+    print(git_date("2024-03-11T02:26:18.671407"))
