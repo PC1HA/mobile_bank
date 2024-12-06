@@ -35,8 +35,3 @@ def git_date(date_and_time: Union[str]) -> Union[str]:
     formatted_date = date_object.strftime("%d.%m.%Y")
 
     return formatted_date
-
-
-if __name__ == "__main__":
-    print(mask_account_card("Счет 64686473678894779589"))
-    print(git_date("2024-03-11T02:26:18.671407"))
