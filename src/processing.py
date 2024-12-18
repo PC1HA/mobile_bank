@@ -14,3 +14,12 @@ def filter_by_state(list_of_dictionaries: List[Dict[str, Any]], state: str = "EX
             filter_list.append(some_dictionary)
 
     return filter_list
+
+
+def sort_by_date(date_list: List[Dict[str, Any]], sort_order: bool = True) -> List[Dict[str, Any]]:
+    """
+    Функция принимает список словарей и необязательный параметр,
+    задающий порядок сортировки (по умолчанию — убывание)
+    и возвращает новый список, отсортированный по дате
+    """
+    return sorted(date_list, key=lambda date_sort: date_sort.get('date'), reverse=sort_order)
