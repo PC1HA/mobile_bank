@@ -1,3 +1,4 @@
+from datetime import datetime
 from typing import Any, Dict, List
 
 
@@ -22,4 +23,5 @@ def sort_by_date(date_list: List[Dict[str, Any]], sort_order: bool = True) -> Li
     задающий порядок сортировки (по умолчанию — убывание)
     и возвращает новый список, отсортированный по дате
     """
-    return sorted(date_list, key=lambda date_sort: date_sort.get('date'), reverse=sort_order)
+
+    return sorted(date_list, key=lambda date_sort: date_sort.get("date", datetime.min), reverse=sort_order)
