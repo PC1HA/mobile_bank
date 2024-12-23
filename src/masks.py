@@ -5,9 +5,12 @@ def get_mask_card_number(card_number: Union[int, str]) -> Union[str]:
     """Преобразуем номер карты в строку, удаляем лишние пробелы"""
     card_number = str(card_number)
     card_number = card_number.replace(" ", "")
-    masked_number = f"{card_number[:4]} {card_number[4:6]}** **** {card_number[-4:]}"
+    if len(card_number) != 16 or card_number.isalpha():
+        return "Неверный номер карты"
+    else:
+        masked_number = f"{card_number[:4]} {card_number[4:6]}** **** {card_number[-4:]}"
 
-    return masked_number
+        return masked_number
 
 
 def get_mask_account(account_number: Union[int, str]) -> Union[str]:

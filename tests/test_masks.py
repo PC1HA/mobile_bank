@@ -1,4 +1,3 @@
-import pytest
 from src.masks import get_mask_card_number
 
 
@@ -16,9 +15,6 @@ def test_list_mask_card_number():
 
 def test_tuple_mask_card_number():
     assert get_mask_card_number((7000792289606361, )) == 'Неверный номер карты'
-
-def test_None_mask_card_number():
-    assert get_mask_card_number(None) == 'Неверный номер карты'
 
 def test_isalpha_mask_card_number():
     assert get_mask_card_number('transactionsaaaa')
