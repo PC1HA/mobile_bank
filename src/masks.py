@@ -17,6 +17,9 @@ def get_mask_account(account_number: Union[int, str]) -> Union[str]:
     """Преобразует номер счёта в номер со '**' и четыре последних цифры"""
     account_number = str(account_number)
     account_number = account_number.replace(" ", "")
-    masked_account = f"**{account_number[-4:]}"
+    if len(account_number) != 20 or account_number.isalpha():
+        return "Неверный номер счёта"
+    else:
+        masked_account = f"**{account_number[-4:]}"
 
-    return masked_account
+        return masked_account
