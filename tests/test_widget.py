@@ -102,7 +102,7 @@ def test_error_account_number() -> None:
         mask_account_card({})  # type: ignore
         mask_account_card(())  # type: ignore
 
-    assert str(exc_info.value) == "Неверные тип данных, ожидается ТОЛЬКО строка: str!"
+    assert str(exc_info.value) == "Неверный тип данных, ожидается ТОЛЬКО строка: str!"
 
 
 def test_normal_data(normal_data: str) -> None:
@@ -128,4 +128,4 @@ def test_error_git_data() -> None:
         git_date({})  # type: ignore
         git_date(())  # type: ignore
 
-    assert str(exc_info.value) == "Неверные тип данных, ожидается ТОЛЬКО строка: str!"
+    assert str(exc_info.value) == "Неверный тип данных, ожидается ТОЛЬКО строка: str!"

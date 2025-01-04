@@ -18,6 +18,11 @@ def incorrect_number() -> str:
     return "Неверный номер карты"
 
 
+@pytest.fixture()
+def incorrect_account() -> str:
+    return "Неверный номер счета"
+
+
 def test_mask_card_number(mask_card_number: str) -> None:
     assert get_mask_card_number("7000792289606361") == mask_card_number
     assert get_mask_card_number("70 007 92289 6063 61") == mask_card_number
@@ -34,6 +39,9 @@ def test_incorrect_number(incorrect_number: str) -> None:
     assert get_mask_card_number("transactionsaaaa") == incorrect_number
     assert get_mask_card_number(14345454363636346346346) == incorrect_number
     assert get_mask_card_number(121231) == incorrect_number
-    assert get_mask_account("") == incorrect_number
-    assert get_mask_account(73654108430) == incorrect_number
-    assert get_mask_account("fatgpvktjfkvlfotfvfd") == incorrect_number
+
+
+def test_incorrect_account(incorrect_account: str) -> None:
+    assert get_mask_account("") == incorrect_account
+    assert get_mask_account(73654108430) == incorrect_account
+    assert get_mask_account("fatgpvktjfkvlfotfvfd") == incorrect_account

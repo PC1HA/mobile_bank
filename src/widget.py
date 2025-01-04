@@ -13,7 +13,7 @@ def mask_account_card(card_or_account_number: Union[str]) -> Union[str]:
     """
     if not isinstance(card_or_account_number, str):
 
-        raise ValueError("Неверные тип данных, ожидается ТОЛЬКО строка: str!")
+        raise ValueError("Неверный тип данных, ожидается ТОЛЬКО строка: str!")
 
     elif len(card_or_account_number) < 23:
 
@@ -94,7 +94,7 @@ def git_date(date_and_time: Union[str]) -> Union[str]:
     """
     if not isinstance(date_and_time, str):
 
-        raise ValueError("Неверные тип данных, ожидается ТОЛЬКО строка: str!")
+        raise ValueError("Неверный тип данных, ожидается ТОЛЬКО строка: str!")
 
     if len(date_and_time) < 10:
 

@@ -26,7 +26,7 @@ def get_mask_account(account_number: Union[int, str]) -> Union[str]:
     account_number = account_number.replace(" ", "")
 
     if len(account_number) != 20 or account_number.isalpha():
-        return "Неверный номер счёта"
+        return "Неверный номер счета"
     else:
         masked_account = f"**{account_number[-4:]}"
 
