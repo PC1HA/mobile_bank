@@ -1,5 +1,5 @@
-from src.widget import mask_account_card
+from src.widget import git_date
 
 
 if __name__ == "__main__":
-    print(mask_account_card('333355'))
+    print(git_date('0001-01-01'))

@@ -92,6 +92,31 @@ def git_date(date_and_time: Union[str]) -> Union[str]:
     Преобразует строку с датой в формате "YYYY-MM-DDTHH:MM:SS.ssssss"
     в строку с датой в формате "ДД.ММ.ГГГГ".
     """
+    if not isinstance(date_and_time, str):
+
+        raise ValueError("Неверные тип данных, ожидается ТОЛЬКО строка: str!")
+
+    if len(date_and_time) < 10:
+
+        return "Неверные данные"
+
+    for item in date_and_time[:10]:
+        if item == "-":
+
+            continue
+
+        elif item.isalpha():
+
+            return "Неверные данные"
+
+    if date_and_time[0:4] == "0000" or date_and_time[5:7] == "00" or date_and_time[8:10] == "00":
+
+        return "Неверные данные"
+
+    if date_and_time[4] != "-" or date_and_time[7] != "-":
+
+        return "Неверные данные"
+
     date_object = datetime.fromisoformat(date_and_time)
     formatted_date = date_object.strftime("%d.%m.%Y")
 

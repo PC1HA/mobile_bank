@@ -1,6 +1,16 @@
 import pytest
 
-from src.widget import mask_account_card
+from src.widget import git_date, mask_account_card
+
+
+@pytest.fixture()
+def normal_data() -> str:
+    return "03.07.2019"
+
+
+@pytest.fixture()
+def zero_date() -> str:
+    return "Неверные данные"
 
 
 @pytest.fixture()
@@ -87,9 +97,35 @@ def test_isdigit_data(isdigit_data: str) -> None:
 
 def test_error_account_number() -> None:
     with pytest.raises(ValueError) as exc_info:
-        mask_account_card(1244545) # type: ignore
-        mask_account_card([]) # type: ignore
-        mask_account_card({}) # type: ignore
-        mask_account_card(()) # type: ignore
+        mask_account_card(1244545)  # type: ignore
+        mask_account_card([])  # type: ignore
+        mask_account_card({})  # type: ignore
+        mask_account_card(())  # type: ignore
+
+    assert str(exc_info.value) == "Неверные тип данных, ожидается ТОЛЬКО строка: str!"
+
+
+def test_normal_data(normal_data: str) -> None:
+    assert git_date("2019-07-03T18:35:29.512364") == normal_data
+    assert git_date("2019-07-03") == normal_data
+
+
+def test_zero_date(zero_date: str) -> None:
+    assert git_date("0000-07-03") == zero_date
+    assert git_date("2019-00-03") == zero_date
+    assert git_date("2019-07-00") == zero_date
+    assert git_date("2019-0a-03") == zero_date
+    assert git_date("20a9-01-03") == zero_date
+    assert git_date("2019-01-a3") == zero_date
+    assert git_date("20190003") == zero_date
+    assert git_date("2019:00:03") == zero_date
+
+
+def test_error_git_data() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        git_date(1243435)  # type: ignore
+        git_date([])  # type: ignore
+        git_date({})  # type: ignore
+        git_date(())  # type: ignore
 
     assert str(exc_info.value) == "Неверные тип данных, ожидается ТОЛЬКО строка: str!"
