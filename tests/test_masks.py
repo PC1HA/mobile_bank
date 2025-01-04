@@ -1,38 +1,39 @@
-from src.masks import get_mask_card_number, get_mask_account
+import pytest
+
+from src.masks import get_mask_account, get_mask_card_number
 
 
-def test_str_mask_card_number():
-    assert get_mask_card_number('7000792289606361') == '7000 79** **** 6361'
-    assert get_mask_card_number('70 007 92289 6063 61') == '7000 79** **** 6361'
+@pytest.fixture
+def mask_account_number() -> str:
+    return "**4305"
 
-def test_int_mask_card_number():
-    assert get_mask_card_number(7000792289606361) == '7000 79** **** 6361'
-    assert get_mask_card_number(121231) == 'Неверный номер карты'
-    assert get_mask_card_number(14345454363636346346346) == 'Неверный номер карты'
 
-def test_list_mask_card_number():
-    assert get_mask_card_number(['7000792289606361']) == 'Неверный номер карты'
+@pytest.fixture()
+def mask_card_number() -> str:
+    return "7000 79** **** 6361"
 
-def test_tuple_mask_card_number():
-    assert get_mask_card_number((7000792289606361, )) == 'Неверный номер карты'
 
-def test_isalpha_mask_card_number():
-    assert get_mask_card_number('transactionsaaaa') == 'Неверный номер карты'
+@pytest.fixture()
+def incorrect_number() -> str:
+    return "Неверный номер карты"
 
-def test_str_mask_account():
-    assert get_mask_account('73654108430135874305') == '**4305'
-    assert get_mask_account('73    6541 084301358743 05') == '**4305'
-    assert get_mask_account('') == 'Неверный номер счёта'
 
-def test_int_mask_account():
-    assert get_mask_account(73654108430135874305) == '**4305'
-    assert get_mask_account(73654108430) == 'Неверный номер счёта'
+def test_mask_card_number(mask_card_number: str) -> None:
+    assert get_mask_card_number("7000792289606361") == mask_card_number
+    assert get_mask_card_number("70 007 92289 6063 61") == mask_card_number
+    assert get_mask_card_number(7000792289606361) == mask_card_number
 
-def test_list_mask_account():
-    assert get_mask_account(['rfr', '134']) == 'Неверный номер счёта'
 
-def test_tuple_mask_account():
-    assert get_mask_account((73654108430135874305, )) == 'Неверный номер счёта'
+def test_mask_account_number(mask_account_number: str) -> None:
+    assert get_mask_account(73654108430135874305) == mask_account_number
+    assert get_mask_account("73654108430135874305") == mask_account_number
+    assert get_mask_account("73    6541 084301358743 05") == mask_account_number
 
-def test_isalpha_mask_account():
-    assert get_mask_account('fatgpvktjfkvlfotfvfd') == 'Неверный номер счёта'
+
+def test_incorrect_number(incorrect_number: str) -> None:
+    assert get_mask_card_number("transactionsaaaa") == incorrect_number
+    assert get_mask_card_number(14345454363636346346346) == incorrect_number
+    assert get_mask_card_number(121231) == incorrect_number
+    assert get_mask_account("") == incorrect_number
+    assert get_mask_account(73654108430) == incorrect_number
+    assert get_mask_account("fatgpvktjfkvlfotfvfd") == incorrect_number

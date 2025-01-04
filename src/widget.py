@@ -3,28 +3,27 @@ from typing import Union
 
 from src.masks import get_mask_account, get_mask_card_number
 
-triggers = ['счет', 'счёт', 'maestro', 'visa platinum', 'visaplatinum']
+triggers = ["счет", "счёт", "maestro", "visa platinum", "visaplatinum"]
+
 
 def mask_account_card(card_or_account_number: Union[str]) -> Union[str]:
     """
     Функция принимает строку, представляющую номер карты или счета,
     и маскирует ее через mask.py либо через условие
     """
-    checks_triggers = lambda check_trigger: check_trigger not in triggers
-
     if not isinstance(card_or_account_number, str):
-        return 'Неверные данные'
+
+        raise ValueError("Неверные тип данных, ожидается ТОЛЬКО строка: str!")
+
+    elif len(card_or_account_number) < 23:
+
+        return "Неверные данные"
 
     elif card_or_account_number.split()[0].isdigit():
-        return (
-            'Неверные данные,'
-            ' возможно вы сначала ввели номер Счета или Карты'
-        )
 
-    elif len(card_or_account_number) < 23 and checks_triggers(card_or_account_number.lower()):
-        return 'Неверные данные'
+        return "Неверные данные, возможно вы сначала ввели номер Счета или Карты"
 
-    elif 'Maestro' in card_or_account_number.title() and len(card_or_account_number) == 24:
+    elif "Maestro" in card_or_account_number.title() and len(card_or_account_number) == 24:
         card_number_list = card_or_account_number.title().split()
         card_name = card_number_list[0]
         card_number = card_number_list[1]
@@ -53,7 +52,7 @@ def mask_account_card(card_or_account_number: Union[str]) -> Union[str]:
 
     elif "Visa Platinum" in card_or_account_number.title() and len(card_or_account_number) == 30:
         card_number_list = card_or_account_number.title().split()
-        card_name = card_number_list[0] + ' ' + card_number_list[1]
+        card_name = card_number_list[0] + " " + card_number_list[1]
         card_number = card_number_list[2]
 
         mask_card_number = get_mask_card_number(card_number)
@@ -67,29 +66,26 @@ def mask_account_card(card_or_account_number: Union[str]) -> Union[str]:
             if trigger.title() in card_or_account_number:
                 if len(card_or_account_number) == 28:
                     return (
-                        f'{card_or_account_number[:4].title()}'
-                        f' {card_or_account_number[4:12].title()}'
-                        f' {card_or_account_number[12:16]}'
-                        f' {card_or_account_number[16:18]}**'
-                        f' **** {card_or_account_number[-4:]}'
+                        f"{card_or_account_number[:4].title()}"
+                        f" {card_or_account_number[4:12].title()}"
+                        f" {card_or_account_number[12:16]}"
+                        f" {card_or_account_number[16:18]}**"
+                        f" **** {card_or_account_number[-4:]}"
                     )
 
                 elif len(card_or_account_number) == 23:
                     return (
-                        f'{card_or_account_number[:7]}'
-                        f' {card_or_account_number[7:11]}'
-                        f' {card_or_account_number[11:13]}**'
-                        f' **** {card_or_account_number[-4:]}'
+                        f"{card_or_account_number[:7]}"
+                        f" {card_or_account_number[7:11]}"
+                        f" {card_or_account_number[11:13]}**"
+                        f" **** {card_or_account_number[-4:]}"
                     )
 
                 elif len(card_or_account_number) == 24:
-                    return (
-                        f'{triggers[0].title()}'
-                        f' **{card_or_account_number[-4:]}'
-                    )
+                    return f"{triggers[0].title()}" f" **{card_or_account_number[-4:]}"
 
+    return "Неверные данные"
 
-    return 'Неверные данные'
 
 def git_date(date_and_time: Union[str]) -> Union[str]:
     """
