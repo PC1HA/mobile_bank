@@ -123,7 +123,348 @@ print("Отсортированные транзакции:", sorted_transaction
 {'state': 'EXECUTED', 'date': '2023-10-01T12:30:45.123456', 'amount': 100}
 ]
 ```
-# Лицензия
+
+## Ветка тестирования кода
+
+### Папка tests
+В ней отрабатываются возможные входные данные по ```masks.py```, ```widget.py```, ```processing.py```
+#### Пример тестирования ```masks.py``` в ```test_masks.py```
+```
+@pytest.fixture
+def mask_account_number() -> str:
+    return "**4305"
+
+
+@pytest.fixture()
+def mask_card_number() -> str:
+    return "7000 79** **** 6361"
+
+
+@pytest.fixture()
+def incorrect_number() -> str:
+    return "Неверный номер карты"
+
+
+@pytest.fixture()
+def incorrect_account() -> str:
+    return "Неверный номер счета"
+
+
+def test_mask_card_number(mask_card_number: str) -> None:
+    assert get_mask_card_number("7000792289606361") == mask_card_number
+    assert get_mask_card_number("70 007 92289 6063 61") == mask_card_number
+    assert get_mask_card_number(7000792289606361) == mask_card_number
+
+
+def test_mask_account_number(mask_account_number: str) -> None:
+    assert get_mask_account(73654108430135874305) == mask_account_number
+    assert get_mask_account("73654108430135874305") == mask_account_number
+    assert get_mask_account("73    6541 084301358743 05") == mask_account_number
+
+
+def test_incorrect_number(incorrect_number: str) -> None:
+    assert get_mask_card_number("transactionsaaaa") == incorrect_number
+    assert get_mask_card_number(14345454363636346346346) == incorrect_number
+    assert get_mask_card_number(121231) == incorrect_number
+
+
+def test_incorrect_account(incorrect_account: str) -> None:
+    assert get_mask_account("") == incorrect_account
+    assert get_mask_account(73654108430) == incorrect_account
+    assert get_mask_account("fatgpvktjfkvlfotfvfd") == incorrect_account
+```
+
+#### Пример тестирования ```processing.py``` в ```test_processing.py```
+
+```
+@pytest.fixture()
+def normal_data() -> str:
+    return "03.07.2019"
+
+
+@pytest.fixture()
+def zero_date() -> str:
+    return "Неверные данные"
+
+
+@pytest.fixture()
+def mask_account() -> str:
+    return "Счет **4305"
+
+
+@pytest.fixture()
+def mask_card_maestro() -> str:
+    return "Maestro 7000 79** **** 6361"
+
+
+@pytest.fixture()
+def mask_card_visa() -> str:
+    return "Visa Platinum 7000 79** **** 6361"
+
+
+@pytest.fixture()
+def incorrect_data() -> str:
+    return "Неверные данные"
+
+
+@pytest.fixture()
+def isdigit_data() -> str:
+    return "Неверные данные, возможно вы сначала ввели номер Счета или Карты"
+
+
+def test_mask_account(mask_account: str) -> None:
+    assert mask_account_card("Счет 73654108430135874305") == mask_account
+    assert mask_account_card("Счет73654108430135874305") == mask_account
+    assert mask_account_card("Счет     73654108430135874305") == mask_account
+    assert mask_account_card("Сч  ет73 65410  8430135  8743 05") == mask_account
+    assert mask_account_card("Счёт 73654108430135874305") == mask_account
+    assert mask_account_card("счет73654108430135874305") == mask_account
+    assert mask_account_card("счёт73654108430135874305") == mask_account
+    assert mask_account_card("СЧЕТ73654108430135874305") == mask_account
+    assert mask_account_card("СЧЁТ73654108430135874305") == mask_account
+    assert mask_account_card("Счёт73654108430135874305") == mask_account
+    assert mask_account_card("сч ёт73 654108 4301358 74305") == mask_account
+    assert mask_account_card("счЁт73654108430135874305") == mask_account
+    assert mask_account_card("счЕт73654108430135874305") == mask_account
+    assert mask_account_card("    счёт73654108430135874305    ") == mask_account
+
+
+def test_mask_card_maestro(mask_card_maestro: str) -> None:
+    assert mask_account_card("Maestro 7000792289606361") == mask_card_maestro
+    assert mask_account_card("maestro 7000792289606361") == mask_card_maestro
+    assert mask_account_card("Maestro7000792289606361") == mask_card_maestro
+    assert mask_account_card("MAESTRO 7000792289606361") == mask_card_maestro
+    assert mask_account_card("MAESTRO7000792289606361") == mask_card_maestro
+    assert mask_account_card("mAestro 7000792289606361") == mask_card_maestro
+    assert mask_account_card("mAestro7000792289606361") == mask_card_maestro
+    assert mask_account_card("Ma estr o 7000 7922 89606 361") == mask_card_maestro
+    assert mask_account_card("    Maestro 7000792289606361   ") == mask_card_maestro
+
+
+def test_mask_card_visa(mask_card_visa: str) -> None:
+    assert mask_account_card("Visa Platinum 7000792289606361") == mask_card_visa
+    assert mask_account_card("visa platinum 7000792289606361") == mask_card_visa
+    assert mask_account_card("VISA PLATINUM 7000792289606361") == mask_card_visa
+    assert mask_account_card("VisaPlatinum 7000792289606361") == mask_card_visa
+    assert mask_account_card("VisaPlatinum7000792289606361") == mask_card_visa
+    assert mask_account_card("visaplatinum 7000792289606361") == mask_card_visa
+    assert mask_account_card("visaplatinum7000792289606361") == mask_card_visa
+    assert mask_account_card("VISAPLATINUM 7000792289606361") == mask_card_visa
+    assert mask_account_card("VISAPLATINUM7000792289606361") == mask_card_visa
+    assert mask_account_card(" V is a Pla tin um 70 00792 289606 361 ") == mask_card_visa
+    assert mask_account_card(" v is a p la tinu m 700 0792 289606 361 ") == mask_card_visa
+    assert mask_account_card("V I SA P LAT INUM 700 079228 96063 61 ") == mask_card_visa
+
+
+def test_incorrect_data(incorrect_data: str) -> None:
+    assert mask_account_card("     Platinum 7000792289606361") == incorrect_data
+    assert mask_account_card("Visa          7000792289606361") == incorrect_data
+    assert mask_account_card("Visa Maestro  7000792289606361") == incorrect_data
+    assert mask_account_card("isa Platinum 7000792289606361") == incorrect_data
+
+
+def test_isdigit_data(isdigit_data: str) -> None:
+    assert mask_account_card("7000792289606361 Visa Platinum") == isdigit_data
+    assert mask_account_card("73654108430135874305 Счет") == isdigit_data
+    assert mask_account_card("7000792289606361 Maestro") == isdigit_data
+
+
+def test_error_account_number() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        mask_account_card(1244545)  # type: ignore
+        mask_account_card([])  # type: ignore
+        mask_account_card({})  # type: ignore
+        mask_account_card(())  # type: ignore
+
+    assert str(exc_info.value) == "Неверный тип данных, ожидается ТОЛЬКО строка: str!"
+
+
+def test_normal_data(normal_data: str) -> None:
+    assert git_date("2019-07-03T18:35:29.512364") == normal_data
+    assert git_date("2019-07-03") == normal_data
+
+
+def test_zero_date(zero_date: str) -> None:
+    assert git_date("0000-07-03") == zero_date
+    assert git_date("2019-00-03") == zero_date
+    assert git_date("2019-07-00") == zero_date
+    assert git_date("2019-0a-03") == zero_date
+    assert git_date("20a9-01-03") == zero_date
+    assert git_date("2019-01-a3") == zero_date
+    assert git_date("20190003") == zero_date
+    assert git_date("2019:00:03") == zero_date
+
+
+def test_error_git_data() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        git_date(1243435)  # type: ignore
+        git_date([])  # type: ignore
+        git_date({})  # type: ignore
+        git_date(())  # type: ignore
+
+    assert str(exc_info.value) == "Неверный тип данных, ожидается ТОЛЬКО строка: str!"
+    
+```
+
+#### Пример тестирования ```widget.py``` в ```test_widget.py```
+```
+def test_list_filter_by_state() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        filter_by_state(123443)  # type: ignore
+        filter_by_state("frrg")  # type: ignore
+        filter_by_state(())  # type: ignore
+        filter_by_state({})  # type: ignore
+        filter_by_state([], 124)  # type: ignore
+        filter_by_state(["rrrt"])  # type: ignore
+        filter_by_state() # type: ignore
+    assert str(exc_info.value) == "Неверный тип данных, ожидается List(список)"
+
+
+def test_list_sort_by_date() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        sort_by_date(123443)  # type: ignore
+        sort_by_date("frrg")  # type: ignore
+        sort_by_date(())  # type: ignore
+        sort_by_date({})  # type: ignore
+
+    assert str(exc_info.value) == "Неверный тип данных, ожидается List(список)"
+
+
+def test_error_state() -> None:
+    with pytest.raises(ValueError) as exc_info:
+        filter_by_state([{}], 1213)  # type: ignore
+        filter_by_state([], [])  # type: ignore
+        filter_by_state([], {})  # type: ignore
+        filter_by_state([], ())  # type: ignore
+
+    assert str(exc_info.value) == "Неверный state"
+
+
+@pytest.mark.parametrize(
+    "a, b, c",
+    [
+        (
+            [{"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"}],
+            "EXECUTED",
+            [{"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"}],
+        ),
+        (
+            [{"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"}],
+            "executed",
+            [{"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"}],
+        ),
+        ([{"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"}], "CANCELED", []),
+        ([{"id": 41428829, "date": "2019-07-03T18:35:29.512364"}], "EXECUTED", []),
+        ([{"state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"}], "EXECUTED", []),
+        ([{"id": 41428829, "state": "EXECUTED"}], "EXECUTED", []),
+        ([], "EXECUTED", []),
+    ],
+)
+def test_filter_by_state(a: list, b: str, c: list) -> None:
+    assert filter_by_state(a, b) == c
+
+
+@pytest.fixture()
+def sort_date() -> list:
+    return [
+        {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
+        {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
+        {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
+        {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
+    ]
+
+
+def test_sort_date(sort_date: list) -> None:
+    assert (
+        sort_by_date(
+            [
+                {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
+                {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
+                {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
+                {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
+                {"state": "CANCELED", "state": "CANCELED", "state": "EXECUTED"},  # noqa
+                {"id": 615064591, "state": "CANCELED", "state": "CANCELED", "state": "EXECUTED"},  # noqa
+                {"id": 615064591, "state": "CANCELED", "date": "aaaa-10-14T08:21:33.419441"},
+            ]
+        )
+        == sort_date
+    )
+
+    assert (
+        sort_by_date(
+            [
+                {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
+                {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
+                {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
+                {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
+            ]
+        )
+        == sort_date
+    )
+
+
+@pytest.fixture()
+def revers_sort_data() -> list:
+    return [
+        {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
+        {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
+        {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
+        {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
+    ]
+
+
+def test_revers_sort_data(revers_sort_data: list) -> None:
+    assert (
+        sort_by_date(
+            [
+                {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
+                {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
+                {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
+                {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
+                {"state": "CANCELED", "state": "CANCELED", "state": "EXECUTED"},  # noqa
+                {"id": 615064591, "state": "CANCELED", "state": "CANCELED", "state": "EXECUTED"},  # noqa
+                {"id": 615064591, "state": "CANCELED", "date": "aaaa-10-14T08:21:33.419441"},
+            ],
+            False,
+        )
+        == revers_sort_data
+    )
+
+    assert (
+        sort_by_date(
+            [
+                {"id": 41428829, "state": "EXECUTED", "date": "2019-07-03T18:35:29.512364"},
+                {"id": 939719570, "state": "EXECUTED", "date": "2018-06-30T02:08:58.425572"},
+                {"id": 594226727, "state": "CANCELED", "date": "2018-09-12T21:27:25.241689"},
+                {"id": 615064591, "state": "CANCELED", "date": "2018-10-14T08:21:33.419441"},
+            ],
+            False,
+        )
+        == revers_sort_data
+    )
+
+
+@pytest.fixture()
+def zero_list_date() -> list:
+    return []
+
+
+def test_zero_list_date(zero_list_date: list) -> None:
+    assert sort_by_date([]) == zero_list_date
+    assert sort_by_date([{}]) == zero_list_date
+    assert (
+        sort_by_date(
+            [
+                {"state": "CANCELED", "state": "CANCELED", "state": "EXECUTED"},  # noqa
+                {"id": 615064591, "state": "CANCELED", "state": "CANCELED", "state": "EXECUTED"},  # noqa
+                {"id": 615064591, "state": "CANCELED", "date": "aaaa-10-14T08:21:33.419441"},
+            ]
+        )
+        == zero_list_date
+    )
+
+```
+## Лицензия
 
 ### MIT License
 
