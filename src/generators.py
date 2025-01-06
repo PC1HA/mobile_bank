@@ -1,7 +1,7 @@
-from typing import Any, Dict, List, Iterator, Union
+from typing import Any, Dict, Iterator, List, Union
 
 
-def filter_by_currency(transactions: List[Dict[str, Any]], currency_code: str) -> Iterator[Dict[str, Any]]:
+def filter_by_currency(transactions: List[Dict[str, Any]], currency_code: str) -> Iterator[Any]:
     """
     Функция принимает список транзакций в виде списка(словарь(транзакция)) и возвращает транзакцию(итератор)
     если Валюта в транзакции совпадает с запросом "currency_code"
@@ -56,11 +56,11 @@ def transaction_descriptions(transactions: List[Dict[str, Any]]) -> Iterator[str
             yield transaction['description']
 
 
-def card_number_generator(start: Union[int, str], stop: Union[int, str]) -> Union[str]:
+def card_number_generator(start: Union[int, str], stop: Union[int, str]) -> Iterator[str]:
     """
     Функция генерирует номер карты по заданному диапазону, если start > stop, будет вызвано исключение
     """
-    def to_int(value):
+    def to_int(value: Union[int, str]) -> Union[int]:
         """
         Функция проверяет, являются ли start и stop целыми числами или строкой.
         Строки преобразует в числа
@@ -87,7 +87,7 @@ def card_number_generator(start: Union[int, str], stop: Union[int, str]) -> Unio
     stop = to_int(stop)
 
     if start > stop:
-        raise ValueError("Параметр start должен быть меньше или равен параметру end.")
+        raise ValueError("Параметр start должен быть меньше или равен параметру stop.")
 
     for number in range(start, stop + 1):
 
