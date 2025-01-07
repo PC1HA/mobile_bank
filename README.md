@@ -123,11 +123,131 @@ print("Отсортированные транзакции:", sorted_transaction
 {'state': 'EXECUTED', 'date': '2023-10-01T12:30:45.123456', 'amount': 100}
 ]
 ```
+### Файл ``` generators.py```
 
+- Пример входных данных:
+
+```
+transacrions = [{
+          "id": 939719570,
+          "state": "EXECUTED",
+          "date": "2018-06-30T02:08:58.425572",
+          "operationAmount": {
+              "amount": "9824.07",
+              "currency": {
+                  "name": "USD",
+                  "code": "USD"
+              }
+          },
+          "description": "Перевод организации",
+          "from": "Счет 75106830613657916952",
+          "to": "Счет 11776614605963066702"
+      },
+      {
+              "id": 142264268,
+              "state": "EXECUTED",
+              "date": "2019-04-04T23:20:05.206878",
+              "operationAmount": {
+                  "amount": "79114.93",
+                  "currency": {
+                      "name": "USD",
+                      "code": "USD"
+                  }
+              },
+              "description": "Перевод со счета на счет",
+              "from": "Счет 19708645243227258542",
+              "to": "Счет 75651667383060284188"
+       }
+]
+```
+#### Функция ```filter_by_currency()``` 
+- Принимает список транзакций в виде list, который содержит словари
+с транзакциями и возвращает транзакцию(и) по заданному значению валюты
+- Пример:
+```
+if __name__ == "__main__":
+    usd_transactions = filter_by_currency(transactions, "USD")
+    for _ in range(2):
+        try:
+            print(next(usd_transactions))
+        except StopIteration:
+            print('Операции закончились')
+            break
+```
+- Вывод:
+```
+{
+          "id": 939719570,
+          "state": "EXECUTED",
+          "date": "2018-06-30T02:08:58.425572",
+          "operationAmount": {
+              "amount": "9824.07",
+              "currency": {
+                  "name": "USD",
+                  "code": "USD"
+              }
+          },
+          "description": "Перевод организации",
+          "from": "Счет 75106830613657916952",
+          "to": "Счет 11776614605963066702"
+      }
+      {
+              "id": 142264268,
+              "state": "EXECUTED",
+              "date": "2019-04-04T23:20:05.206878",
+              "operationAmount": {
+                  "amount": "79114.93",
+                  "currency": {
+                      "name": "USD",
+                      "code": "USD"
+                  }
+              },
+              "description": "Перевод со счета на счет",
+              "from": "Счет 19708645243227258542",
+              "to": "Счет 75651667383060284188"
+       }
+```
+
+#### Функция ```transaction_descriptions()```
+- Принимает список транзакций list, и возвращает описание транзакций в нем
+- Пример:
+```
+if __name__ == "__main__":
+    name_transaction = transaction_descriptions(transaction)
+
+    for _ in range(2):
+        try:
+            print(next(name_transaction))
+        except StopIteration:
+            print('Операции закончились')
+            break
+```
+- Вывод:
+```
+Перевод организации
+Перевод со счета на счет
+```
+
+#### Функция ```card_number_generator()```
+- Функция генерирует 16-значный номер карты по заданному промежутку
+начало start, конец stop
+- ограничения: от 0 до 9999999999999999
+- Пример:
+```
+for card_number in card_number_generator('  1 2 3  ', ' 1  2  4'):
+    print(card_number)
+```
+- Вывод:
+```
+0000 0000 0000 0123
+0000 0000 0000 0124
+```
 ## Ветка тестирования кода
 
 ### Папка tests
-В ней отрабатываются возможные входные данные по ```masks.py```, ```widget.py```, ```processing.py```
+В ней отрабатываются возможные входные данные по
+```masks.py```, ```widget.py```, ```processing.py```, ```generators.py```
+
 #### Пример тестирования ```masks.py``` в ```test_masks.py```
 ```
 @pytest.fixture
@@ -174,7 +294,7 @@ def test_incorrect_account(incorrect_account: str) -> None:
     assert get_mask_account("fatgpvktjfkvlfotfvfd") == incorrect_account
 ```
 
-#### Пример тестирования ```processing.py``` в ```test_processing.py```
+#### Пример тестирования ```widget.py``` в ```test_widget.py```
 
 ```
 @pytest.fixture()
@@ -306,7 +426,7 @@ def test_error_git_data() -> None:
     
 ```
 
-#### Пример тестирования ```widget.py``` в ```test_widget.py```
+#### Пример тестирования ```processing.py``` в ```test_processing.py```
 ```
 def test_list_filter_by_state() -> None:
     with pytest.raises(ValueError) as exc_info:
@@ -464,6 +584,117 @@ def test_zero_list_date(zero_list_date: list) -> None:
     )
 
 ```
+
+#### Пример тестирования ```generators.py``` в ```test_generators.py```
+
+```
+import pytest
+from typing import Any, Dict, List, Union
+
+from src.generators import filter_by_currency, card_number_generator, transaction_descriptions
+
+@pytest.fixture
+def sample_transactions() -> List[Dict[str, Any]]:
+    return [
+        {
+            "description": "Transaction 1",
+            "operationAmount": {
+                "amount": 100,
+                "currency": {"code": "USD"}
+            }
+        },
+        {
+            "description": "Transaction 2",
+            "operationAmount": {
+                "amount": 200,
+                "currency": {"code": "EUR"}
+            }
+        },
+        {
+            "description": "Transaction 3",
+            "operationAmount": {
+                "amount": 300,
+                "currency": {"code": "USD"}
+            }
+        }
+    ]
+
+@pytest.mark.parametrize(
+    "currency_code, expected_descriptions",
+    [
+        ("USD", ["Transaction 1", "Transaction 3"]),
+        ("EUR", ["Transaction 2"]),
+        ("GBP", [])
+    ]
+)
+def test_filter_by_currency(
+    sample_transactions: List[Dict[str, Any]],
+    currency_code: str,
+    expected_descriptions: List[str]
+) -> None:
+    filtered_transactions = list(filter_by_currency(sample_transactions, currency_code))
+    result_descriptions = [t['description'] for t in filtered_transactions]
+    assert result_descriptions == expected_descriptions
+
+def test_filter_by_currency_empty_list() -> None:
+    result = list(filter_by_currency([], "USD"))
+    assert result == ["Список транзакций пуст."]
+
+def test_filter_by_currency_invalid_input() -> None:
+    with pytest.raises(ValueError) as excinfo:
+        list(filter_by_currency("invalid", "USD"))
+    assert str(excinfo.value) == "Входные данные должны быть списком."
+
+def test_transaction_descriptions(sample_transactions: List[Dict[str, Any]]) -> None:
+    descriptions = list(transaction_descriptions(sample_transactions))
+    assert descriptions == ["Transaction 1", "Transaction 2", "Transaction 3"]
+
+def test_transaction_descriptions_empty_list() -> None:
+    result = list(transaction_descriptions([]))
+    assert result == ["Список транзакций пуст."]
+
+def test_transaction_descriptions_invalid_input() -> None:
+    with pytest.raises(ValueError) as excinfo:
+        list(transaction_descriptions("invalid"))
+    assert str(excinfo.value) == "Входные данные должны быть списком."
+
+@pytest.mark.parametrize(
+    "start, stop, expected_output",
+    [
+        (" 1 2 3 ", " 1 2 4 ", ["0000000000000123", "0000000000000124"]),
+        (1, 5, ["0000000000000001", "0000000000000002",
+                 "0000000000000003", "0000000000000004",
+                 "0000000000000005"]),
+        ("10", "12", ["0000000000000010",
+                       "0000000000000011",
+                       "0000000000000012"])
+    ]
+)
+def test_card_number_generator(
+    start: Union[str, int],
+    stop: Union[str, int],
+    expected_output: List[str]
+) -> None:
+    generated_numbers = list(card_number_generator(start, stop))
+    assert generated_numbers == [
+        f"{num[:4]} {num[4:8]} {num[8:12]} {num[12:16]}"
+        for num in expected_output
+    ]
+
+def test_card_number_generator_empty_range() -> None:
+    with pytest.raises(ValueError) as excinfo:
+        list(card_number_generator("10", "5"))
+    assert str(excinfo.value) == "Параметр start должен быть меньше " \
+                                   "или равен параметру end."
+
+def test_card_number_generator_invalid_input() -> None:
+    with pytest.raises(ValueError) as excinfo:
+        list(card_number_generator("1a", "5"))
+    assert str(excinfo.value) == "Параметры должны содержать только " \
+                                   "целые числа."
+
+```
+
 ## Лицензия
 
 ### MIT License

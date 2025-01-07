@@ -11,7 +11,7 @@ def test_list_filter_by_state() -> None:
         filter_by_state({})  # type: ignore
         filter_by_state([], 124)  # type: ignore
         filter_by_state(["rrrt"])  # type: ignore
-        filter_by_state() # type: ignore
+        filter_by_state()  # type: ignore
     assert str(exc_info.value) == "Неверный тип данных, ожидается List(список)"
 
 
