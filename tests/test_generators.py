@@ -33,7 +33,7 @@ def test_filter_by_currency_empty_list() -> None:
 
 def test_filter_by_currency_invalid_input() -> None:
     with pytest.raises(ValueError) as excinfo:
-        list(filter_by_currency("invalid", "USD")) # type: ignore
+        list(filter_by_currency("invalid", "USD"))  # type: ignore
     assert str(excinfo.value) == "Входные данные должны быть списком."
 
 
@@ -49,7 +49,7 @@ def test_transaction_descriptions_empty_list() -> None:
 
 def test_transaction_descriptions_invalid_input() -> None:
     with pytest.raises(ValueError) as excinfo:
-        list(transaction_descriptions("invalid")) # type: ignore
+        list(transaction_descriptions("invalid"))  # type: ignore
     assert str(excinfo.value) == "Входные данные должны быть списком."
 
 
