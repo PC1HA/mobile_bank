@@ -242,6 +242,32 @@ for card_number in card_number_generator('  1 2 3  ', ' 1  2  4'):
 0000 0000 0000 0123
 0000 0000 0000 0124
 ```
+
+### Файл ```decorators.py```
+Содержит в себе декоратор ```log()```, который автоматически регистрирует все детали
+выполнения функций
+- Пример использования:
+- 
+```
+from src.decorators import log
+
+
+if __name__ == "__main__":
+    @log()
+    def my_function(x, y):
+        return x + y
+
+    my_function(1, 2)
+
+```
+
+- Вывод в консоль:
+
+```
+2025-01-08 20:46:37,523 - Calling my_function with args: (1, 2), kwargs: {}
+2025-01-08 20:46:37,523 - my_function returned 3 in 0.0001 seconds
+```
+
 ## Ветка тестирования кода
 
 ### Папка tests
@@ -692,6 +718,79 @@ def test_card_number_generator_invalid_input() -> None:
         list(card_number_generator("1a", "5"))
     assert str(excinfo.value) == "Параметры должны содержать только " \
                                    "целые числа."
+
+```
+
+#### Пример тестирования ```decorators.py``` в ```test_decorators.py```
+
+```
+from typing import Iterator
+
+import pytest
+
+from src.decorators import log
+from src.masks import get_mask_account, get_mask_card_number
+
+
+@pytest.fixture
+def setup_logging(caplog: pytest.LogCaptureFixture) -> Iterator:
+    yield caplog
+
+
+def test_function_logging(setup_logging: pytest.LogCaptureFixture) -> None:
+    @log()
+    def test_function(x: int, y: int) -> int:
+        return x + y
+
+    result = test_function(3, 4)
+
+    assert result == 7
+    assert "Calling test_function with args: (3, 4), kwargs: {}" in setup_logging.text
+    assert "test_function returned 7" in setup_logging.text
+
+
+def test_function_error_logging(setup_logging: pytest.LogCaptureFixture) -> None:
+    @log()
+    def faulty_function(x: int, y: int) -> float:
+        return x / y
+
+    with pytest.raises(ZeroDivisionError):
+        faulty_function(1, 0)
+
+    assert "Calling faulty_function with args: (1, 0), kwargs: {}" in setup_logging.text
+    assert "faulty_function raised ZeroDivisionError" in setup_logging.text  # Проверка на ошибку
+
+
+@log()
+def test_get_mask_card_number_valid() -> None:
+    assert get_mask_card_number(1234567812345678) == "1234 56** **** 5678"
+    assert get_mask_card_number("1234 5678 1234 5678") == "1234 56** **** 5678"
+
+
+@log()
+def test_get_mask_card_number_invalid() -> None:
+    assert get_mask_card_number("1234 5678 1234") == "Неверный номер карты"
+    assert get_mask_card_number("some_invalid_string") == "Неверный номер карты"
+    assert get_mask_card_number(123) == "Неверный номер карты"
+
+    with pytest.raises(ValueError, match="Неверный тип данных. Ожидается целое число или строка."):
+        get_mask_card_number([])  # type: ignore
+
+
+@log()
+def test_get_mask_account_valid() -> None:
+    assert get_mask_account(12345678901234567890) == "**7890"
+    assert get_mask_account("12345678901234567890") == "**7890"
+
+
+@log()
+def test_get_mask_account_invalid() -> None:
+    assert get_mask_account("1234567890123456789") == "Неверный номер счета"
+    assert get_mask_account("invalid_account") == "Неверный номер счета"
+    assert get_mask_account(123) == "Неверный номер счета"
+
+    with pytest.raises(ValueError, match="Неверный тип данных. Ожидается целое число или строка."):
+        get_mask_account([])  # type: ignore
 
 ```
 
