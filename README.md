@@ -15,8 +15,9 @@
 - Убедитесь, что у вас установлен Python и необходимые библиотеки.
 - Лучше всего будет использовать всё через файл main.py, пропишите импорты
     и данные, с которыми будете работать
-
-
+- ```.env```
+EXCHANGE_RATES_API_KEY=your_api_key_here
+Вместо ```your_api_key_here``` вставьте свой ключ
 ## Примеры использования
 
 ### Файл main.py
@@ -268,6 +269,49 @@ if __name__ == "__main__":
 2025-01-08 20:46:37,523 - my_function returned 3 in 0.0001 seconds
 ```
 
+### Файл ```utils.py```
+Загружает данные о транзакциях из JSON-файла
+
+- Пример использования
+```
+from src.utils import load_transactions
+
+if __name__ == "__main__":
+    path = 'data/operations.json'
+    transactions = load_transactions(path)
+    
+    if transactions:
+        print("Транзакции загружены:")
+        for transaction in transactions:
+            print(transaction)
+    else:
+        print("Не удалось загрузить транзакции или файл пуст.")
+```
+
+### Файл ```external_api.py```
+
+#### Функция ```get_exchange_rate```
+
+Получает текущий курс обмена из API
+
+#### Функция ```get_transaction_amount_in_rub```
+
+Получает сумму транзакции в рублях
+
+- Пример
+```
+from src.external_api import get_transaction_amount_in_rub
+
+if __name__ == "__main__":
+    # Пример транзакции
+    transaction = {
+        "amount": 100.0,
+        "currency": "USD"
+    }
+    
+    amount_in_rub = get_transaction_amount_in_rub(transaction)
+    print(f"Сумма транзакции в рублях: {amount_in_rub:.2f}")
+```
 ## Ветка тестирования кода
 
 ### Папка tests
@@ -791,6 +835,137 @@ def test_get_mask_account_invalid() -> None:
 
     with pytest.raises(ValueError, match="Неверный тип данных. Ожидается целое число или строка."):
         get_mask_account([])  # type: ignore
+
+```
+#### Пример тестирования ```utils.py``` в ```test_utils.py```
+
+```
+import json
+import unittest
+from typing import Any, Dict, List
+from unittest import mock
+from unittest.mock import mock_open
+
+from src.utils import load_transactions
+
+
+class TestLoadTransactions(unittest.TestCase):
+
+    @mock.patch("builtins.open", new_callable=mock_open, read_data=json.dumps([{"id": 1, "amount": 100}]))
+    @mock.patch("os.path.exists", return_value=True)
+    def test_load_transactions_success(self, mock_exists: mock.Mock, mock_open: mock.Mock) -> None:
+        file_path: str = "fake_path.json"
+        result: List[Dict[str, Any]] = load_transactions(file_path)
+        expected: List[Dict[str, Any]] = [{"id": 1, "amount": 100}]
+        self.assertEqual(result, expected)
+        mock_open.assert_called_once_with(file_path, 'r', encoding='utf-8')
+        mock_exists.assert_called_once_with(file_path)
+
+    @mock.patch("os.path.exists", return_value=False)
+    def test_load_transactions_file_not_found(self, mock_exists: mock.Mock) -> None:
+        file_path: str = "fake_path.json"
+        result: List[Dict[str, Any]] = load_transactions(file_path)
+        self.assertEqual(result, [])
+        mock_exists.assert_called_once_with(file_path)
+
+    @mock.patch("builtins.open", new_callable=mock_open, read_data="")
+    @mock.patch("os.path.exists", return_value=True)
+    def test_load_transactions_empty_file(self, mock_exists: mock.Mock, mock_open: mock.Mock) -> None:
+        file_path: str = "fake_path.json"
+        result: List[Dict[str, Any]] = load_transactions(file_path)
+        self.assertEqual(result, [])
+        mock_open.assert_called_once_with(file_path, 'r', encoding='utf-8')
+        mock_exists.assert_called_once_with(file_path)
+
+    @mock.patch("builtins.open", new_callable=mock_open, read_data="not a json")
+    @mock.patch("os.path.exists", return_value=True)
+    def test_load_transactions_invalid_json(self, mock_exists: mock.Mock, mock_open: mock.Mock) -> None:
+        file_path: str = "fake_path.json"
+        result: List[Dict[str, Any]] = load_transactions(file_path)
+        self.assertEqual(result, [])
+        mock_open.assert_called_once_with(file_path, 'r', encoding='utf-8')
+        mock_exists.assert_called_once_with(file_path)
+
+```
+#### Пример тестирования ```external_api.py``` в ```test_external_api.py```
+
+```
+import unittest
+from unittest.mock import MagicMock, patch
+
+from src.external_api import get_exchange_rate, get_transaction_amount_in_rub
+
+
+class TestExchangeFunctions(unittest.TestCase):
+
+    @patch("os.getenv", return_value="fake_api_key")
+    @patch("requests.get")
+    def test_get_exchange_rate_success(self, mock_get: MagicMock, mock_getenv: MagicMock) -> None:
+        mock_get.return_value.status_code = 200
+        mock_get.return_value.json.return_value = {
+            "rates": {
+                "RUB": 75.0
+            }
+        }
+
+        base_currency: str = "USD"
+        target_currency: str = "RUB"
+
+        rate: float = get_exchange_rate(base_currency, target_currency)
+
+        self.assertEqual(rate, 75.0)
+        mock_get.assert_called_once_with(
+            f"https://api.apilayer.com/exchangerates_data/latest?base={base_currency}&symbols={target_currency}",
+            headers={"apikey": "fake_api_key"}
+        )
+
+    @patch("os.getenv", return_value="fake_api_key")
+    @patch("requests.get")
+    def test_get_exchange_rate_failure(self, mock_get: MagicMock, mock_getenv: MagicMock) -> None:
+        mock_get.return_value.status_code = 400
+
+        with self.assertRaises(Exception) as context:
+            get_exchange_rate("USD", "RUB")
+
+        self.assertEqual(str(context.exception), "Error fetching data from API")
+        mock_get.assert_called_once_with(
+            "https://api.apilayer.com/exchangerates_data/latest?base=USD&symbols=RUB",
+            headers={"apikey": "fake_api_key"}
+        )
+
+    @patch("src.external_api.get_exchange_rate", return_value=75.0)
+    def test_get_transaction_amount_in_rub_rub_currency(self, mock_get_rate: MagicMock) -> None:
+        transaction: dict = {"amount": 1000, "currency": "RUB"}
+
+        result: float = get_transaction_amount_in_rub(transaction)
+
+        self.assertEqual(result, 1000.0)
+        mock_get_rate.assert_not_called()
+
+    @patch("src.external_api.get_exchange_rate", return_value=75.0)
+    def test_get_transaction_amount_in_rub_usd_currency(self, mock_get_rate: MagicMock) -> None:
+        transaction: dict = {"amount": 100, "currency": "USD"}
+
+        result: float = get_transaction_amount_in_rub(transaction)
+
+        self.assertEqual(result, 7500.0)
+        mock_get_rate.assert_called_once_with("USD", "RUB")
+
+    @patch("src.external_api.get_exchange_rate", return_value=80.0)
+    def test_get_transaction_amount_in_rub_eur_currency(self, mock_get_rate: MagicMock) -> None:
+        transaction: dict = {"amount": 50, "currency": "EUR"}
+
+        result: float = get_transaction_amount_in_rub(transaction)
+
+        self.assertEqual(result, 4000.0)
+        mock_get_rate.assert_called_once_with("EUR", "RUB")
+
+    def test_get_transaction_amount_in_rub_unknown_currency(self) -> None:
+        transaction: dict = {"amount": 100, "currency": "JPY"}
+
+        result: float = get_transaction_amount_in_rub(transaction)
+
+        self.assertEqual(result, 100.0)
 
 ```
 
